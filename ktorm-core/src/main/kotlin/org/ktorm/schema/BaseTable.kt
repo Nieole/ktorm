@@ -20,6 +20,7 @@ import org.ktorm.dsl.QueryRowSet
 import org.ktorm.entity.Entity
 import org.ktorm.expression.TableExpression
 import java.util.*
+import kotlin.collections.LinkedHashMap
 import kotlin.collections.LinkedHashSet
 import kotlin.reflect.KClass
 import kotlin.reflect.jvm.jvmErasure
@@ -70,6 +71,8 @@ public abstract class BaseTable<E : Any>(
 
     private val _refCounter = RefCounter.getCounter()
     private val _columns = LinkedHashMap<String, Column<*>>()
+    private val _insertFillColumns = LinkedHashMap<String,Column<*>>()
+    private val _updateFillColumns = LinkedHashMap<String,Column<*>>()
     private val _primaryKeyNames = LinkedHashSet<String>()
 
     /**
@@ -116,6 +119,18 @@ public abstract class BaseTable<E : Any>(
      * The primary key columns of this table.
      */
     public val primaryKeys: List<Column<*>> get() = _primaryKeyNames.map { this[it] }
+
+    public fun addInsertFillColumn(column: Column<*>){
+        _insertFillColumns[column.name] = column
+    }
+
+    public fun addUpdateFillColumn(column: Column<*>){
+        _updateFillColumns[column.name] = column
+    }
+
+    public val insertFillColumns: List<Column<*>> get() = _insertFillColumns.values.toList()
+
+    public val updateFillColumns: List<Column<*>> get() = _updateFillColumns.values.toList()
 
     /**
      * Obtain the single primary key or throw an exception.

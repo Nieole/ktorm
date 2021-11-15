@@ -191,4 +191,20 @@ public data class Column<T : Any>(
     override fun hashCode(): Int {
         return System.identityHashCode(this)
     }
+
+    var insert:(()->T)? = null
+
+    var update:(()->T)? = null
+
+    public fun fillInsert(insert: () -> T): Column<T> {
+        this.insert = insert
+        table.addInsertFillColumn(this)
+        return this
+    }
+
+    public fun fillUpdate(update: () -> T): Column<T> {
+        this.update = update
+        table.addUpdateFillColumn(this)
+        return this
+    }
 }

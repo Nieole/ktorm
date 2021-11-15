@@ -4,6 +4,8 @@ import org.junit.Test
 import org.ktorm.BaseTest
 import org.ktorm.entity.*
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.util.*
 
 /**
  * Created by vince on Dec 08, 2018.
@@ -149,5 +151,39 @@ class DmlTest : BaseTest() {
     fun testDelete() {
         database.delete(Employees) { it.id eq 4 }
         assert(database.employees.count() == 3)
+    }
+
+    @Test
+    fun testFillInsert(){
+        database.insert(Fills){
+        }
+
+        assert(database.fills.count() == 1)
+    }
+
+    @Test
+    fun testFillBatchInsert(){
+        database.batchInsert(Fills){
+            item {
+            }
+            item {
+            }
+        }
+
+        assert(database.fills.count() == 2)
+    }
+
+    @Test
+    fun testFillUpdate(){
+        database.insert(Fills){
+            set(it.id,1)
+        }
+        database.update(Fills){
+            where {
+                it.id eq 1
+            }
+        }
+
+        assert(database.fills.find { it.id eq 1 } ?.name == "update")
     }
 }

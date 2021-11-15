@@ -51,6 +51,7 @@ import kotlin.collections.ArrayList
  */
 public fun <T : BaseTable<*>> Database.update(table: T, block: UpdateStatementBuilder.(T) -> Unit): Int {
     val builder = UpdateStatementBuilder().apply { block(table) }
+    fillUpdate(builder,table)
 
     val expression = AliasRemover.visit(
         UpdateExpression(table.asExpression(), builder.assignments, builder.where?.asExpression())
@@ -123,8 +124,31 @@ public fun <T : BaseTable<*>> Database.batchUpdate(
  */
 public fun <T : BaseTable<*>> Database.insert(table: T, block: AssignmentsBuilder.(T) -> Unit): Int {
     val builder = AssignmentsBuilder().apply { block(table) }
+    fillInsert(builder, table)
     val expression = AliasRemover.visit(InsertExpression(table.asExpression(), builder.assignments))
     return executeUpdate(expression)
+}
+
+private fun <T : BaseTable<*>> fillInsert(builder: AssignmentsBuilder, table: T) {
+    val assignmentNames = builder.assignments.map {
+        it.column.name
+    }
+    table.insertFillColumns.filter {
+        !assignmentNames.contains(it.name)
+    }.forEach {
+        builder.set(it, it.insert?.invoke())
+    }
+}
+
+private fun <T : BaseTable<*>> fillUpdate(builder: AssignmentsBuilder, table: T) {
+    val assignmentNames = builder.assignments.map {
+        it.column.name
+    }
+    table.updateFillColumns.filter {
+        !assignmentNames.contains(it.name)
+    }.forEach {
+        builder.set(it, it.update?.invoke())
+    }
 }
 
 /**
@@ -153,6 +177,7 @@ public fun <T : BaseTable<*>> Database.insert(table: T, block: AssignmentsBuilde
  */
 public fun <T : BaseTable<*>> Database.insertAndGenerateKey(table: T, block: AssignmentsBuilder.(T) -> Unit): Any {
     val builder = AssignmentsBuilder().apply { block(table) }
+    fillInsert(builder,table)
     val expression = AliasRemover.visit(InsertExpression(table.asExpression(), builder.assignments))
     val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
 
@@ -296,7 +321,7 @@ public open class AssignmentsBuilder {
      */
     @JvmName("setAny")
     @Suppress("UNCHECKED_CAST")
-    @Deprecated("This function will be removed in the future. Please use the generic version instead.")
+//    @Deprecated("This function will be removed in the future. Please use the generic version instead.")
     public fun set(column: Column<*>, value: Any?) {
         (column as Column<Any>).checkAssignableFrom(value)
         _assignments += ColumnAssignmentExpression(column.asExpression(), column.wrapArgument(value))
@@ -393,6 +418,7 @@ public class BatchUpdateStatementBuilder<T : BaseTable<*>>(internal val table: T
      */
     public fun item(block: UpdateStatementBuilder.(T) -> Unit) {
         val builder = UpdateStatementBuilder()
+        fillUpdate(builder,table)
         builder.block(table)
 
         expressions += UpdateExpression(table.asExpression(), builder.assignments, builder.where?.asExpression())
@@ -411,6 +437,7 @@ public class BatchInsertStatementBuilder<T : BaseTable<*>>(internal val table: T
      */
     public fun item(block: AssignmentsBuilder.(T) -> Unit) {
         val builder = AssignmentsBuilder()
+        fillInsert(builder,table)
         builder.block(table)
 
         expressions += InsertExpression(table.asExpression(), builder.assignments)

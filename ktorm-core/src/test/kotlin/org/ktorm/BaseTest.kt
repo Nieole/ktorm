@@ -4,6 +4,7 @@ import org.junit.After
 import org.junit.Before
 import org.ktorm.database.Database
 import org.ktorm.database.use
+import org.ktorm.dsl.QueryRowSet
 import org.ktorm.entity.Entity
 import org.ktorm.entity.sequenceOf
 import org.ktorm.logging.ConsoleLogger
@@ -11,6 +12,8 @@ import org.ktorm.logging.LogLevel
 import org.ktorm.schema.*
 import java.io.Serializable
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.util.*
 
 /**
  * Created by vince on Dec 07, 2018.
@@ -117,6 +120,22 @@ open class BaseTest {
         val email = varchar("email").bindTo { it.email }
         val phoneNumber = varchar("phone_number").bindTo { it.phoneNumber }
     }
+
+    interface Fill : Entity<Fill>{
+        companion object : Entity.Factory<Fill>()
+
+        val id:Int
+        val name:String
+        val createdAt:LocalDateTime
+    }
+
+    object Fills : Table<Fill>("fill"){
+        val id = int("id").primaryKey().bindTo { it.id }.fillInsert { Random().nextInt(1000) }
+        val name = varchar("name").bindTo { it.name }.fillInsert { "insert" }.fillUpdate { "update" }
+        val createdAt = datetime("created_at").bindTo { it.createdAt }.fillInsert { LocalDateTime.now() }.fillUpdate { LocalDateTime.now() }
+    }
+
+    val Database.fills get() = sequenceOf(Fills)
 
     val Database.departments get() = this.sequenceOf(Departments)
 

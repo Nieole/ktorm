@@ -58,3 +58,9 @@ insert into "t_employee0"("name", "job", "manager_id", "hire_date", "salary", "d
     values ('tom', 'director', null, '2018-01-01', 200, 2);
 insert into "t_employee0"("name", "job", "manager_id", "hire_date", "salary", "department_id")
     values ('penny', 'assistant', 3, '2019-01-01', 100, 2);
+
+create table "fill"(
+    "id" int not null primary key auto_increment,
+    "name" varchar(255),
+    "created_at" timestamp(3) not null
+);
