@@ -16,7 +16,7 @@ buildscript {
 
 allprojects {
     group = "org.ktorm"
-    version = "3.4.1-with_fill"
+    version = "3.4.1-with_fill-SNAPSHOT"
 }
 
 subprojects { project ->

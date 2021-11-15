@@ -196,12 +196,18 @@ public data class Column<T : Any>(
 
     var update:(()->T)? = null
 
+    /**
+     * config fill on insert function
+     */
     public fun fillInsert(insert: () -> T): Column<T> {
         this.insert = insert
         table.addInsertFillColumn(this)
         return this
     }
 
+    /**
+     * config fill on update function
+     */
     public fun fillUpdate(update: () -> T): Column<T> {
         this.update = update
         table.addUpdateFillColumn(this)
